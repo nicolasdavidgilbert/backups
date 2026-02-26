@@ -41,6 +41,18 @@ El script crea la siguiente estructura en `/backups/<SSD>/`:
     └── 2026-02-26/
 ```
 
+### Flujo general
+
+Antes de ejecutar cualquier backup, el script:
+
+1. **Analiza** los archivos que se transferirán
+2. **Calcula** el tamaño total y cantidad de archivos/cambios
+3. **Solicita confirmación** al usuario: `▶ Continuar? [S/n]`
+   - Por defecto continúa (Intro = sí, `n` = cancelar)
+4. **Ejecuta rsync** si el usuario confirma
+
+Esta lógica está centralizada en la función `ask_continue()`.
+
 ### Backup completo
 
 Copia todos los archivos del SSD al directorio `completo/<fecha>/` usando rsync con:
@@ -50,7 +62,12 @@ Copia todos los archivos del SSD al directorio `completo/<fecha>/` usando rsync 
 
 ### Backup incremental
 
-Usa rsync con `--link-dest` apuntando al último backup (completo o incremental). Esto crea hard links a los archivos no modificados, ahorrando espacio en disco.
+Ejecuta primero un análisis simulado con `rsync -ai` para mostrar:
+- Referencia (último backup usado como base)
+- Archivos que cambiarán
+- Tamaño aproximado de los cambios
+
+Luego usa rsync con `--link-dest` apuntando al último backup (completo o incremental). Esto crea hard links a los archivos no modificados, ahorrando espacio en disco.
 
 **Requisito**: debe existir al menos un backup completo previo.
 
