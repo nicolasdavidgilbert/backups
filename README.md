@@ -92,6 +92,64 @@ Esto permite agregar nuevos modificadores fácilmente añadiendo elementos al ar
 
 El script debe ejecutarse con sudo para acceder a los directorios del SSD en `/media/`.
 
+## Scripts disponibles
+
+Existen dos enfoques de backup:
+
+### Enfoque 1: rsync (script principal)
+
+El script principal `backups.sh` ubicado en `/usr/local/bin/backups` usa rsync para realizar backups.
+
+### Enfoque 2: tar (scripts alternativos)
+
+Alternativamente, se pueden usar los scripts `inicial.sh` e `incremental.sh` que usan `tar` con `--listed-incremental` para crear backups comprimidos en formato `.tar.gz`.
+
+#### inicial.sh - Backup completo
+
+```bash
+./inicial.sh <origen> [destino]
+```
+
+- **origen**: Directorio a respaldar
+- **destino** (opcional): Directorio donde se guardará el backup (por defecto, directorio actual)
+
+Crea la estructura:
+```
+<nombre>_backups/
+└── Iniciales/
+    └── dd-mm-YYYY_HH-MM-SS_FULL/
+        ├── backup_FULL.tar.gz
+        └── metadatos.snar
+```
+
+#### incremental.sh - Backup incremental
+
+```bash
+./incremental.sh <origen> [destino]
+```
+
+- Requiere que exista un backup completo previo (creado con `inicial.sh`)
+- Usa el archivo de metadatos `.snar` del último backup
+
+Crea la estructura:
+```
+<nombre>_backups/
+└── Incrementales/
+    └── dd-mm-YYYY_HH-MM-SS_INC/
+        ├── backup_INC.tar.gz
+        └── metadatos.snar
+```
+
+### Ejemplos
+
+```bash
+# Backup completo con tar
+./inicial.sh /media/usuario/MiSSD /backups
+
+# Backup incremental con tar
+./incremental.sh /media/usuario/MiSSD /backups
+```
+
 ## Instalación
 
 1. Copiar el script a una ruta del PATH:
