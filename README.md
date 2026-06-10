@@ -82,6 +82,21 @@ destino/
             └── metadatos.snar
 ```
 
+
+## Estructura del código
+
+* `backup_tui.py`: punto de entrada ejecutable.
+* `backup_lib/tui.py`: estado principal y navegación de teclado.
+* `backup_lib/render.py`: dibujo de pantalla, paneles, campos y resumen de restauración.
+* `backup_lib/dialogs.py`: menú de salida y prompt de edición.
+* `backup_lib/workflows.py`: conexión entre la TUI y las operaciones largas.
+* `backup_lib/operations.py`: creación y restauración de backups.
+* `backup_lib/archives.py`: snapshots, cadenas de restauración y último backup disponible.
+* `backup_lib/devices.py`: detección de discos externos.
+* `backup_lib/commands.py`: comandos del sistema, tamaños, validaciones de espacio y destino seguro.
+* `backup_lib/models.py`: modelos y errores compartidos.
+* `backup_lib/config.py`: constantes de configuración.
+
 ## Requisitos
 
 * Linux
