@@ -1,23 +1,57 @@
-# 🐧 Linux Backup Scripts – Full & Incremental
+# Linux Backup TUI
 
-Scripts en **Bash** para realizar copias de seguridad completas e incrementales usando `tar` y `--listed-incremental`, con control de errores, limpieza automática y barra de progreso tipo spinner.
+Aplicación en **Python** para crear copias de seguridad completas e incrementales desde una interfaz minimalista en la misma terminal de Linux.
 
----
+La interfaz permite:
 
-## 📦 Características
+* Elegir el disco externo montado que se usará como origen.
+* Confirmar o escribir el directorio de origen.
+* Escribir el directorio destino fuera del disco de origen.
+* Ejecutar backup completo o incremental usando `tar --listed-incremental`.
+* Cancelar un proceso en curso con limpieza de archivos parciales.
 
-* ✅ Backup **completo (FULL)** comprimido en `.tar.gz`
-* 🔁 Backup **incremental (INC)** basado en archivo `.snar`
-* 🧠 Gestión automática de metadatos
-* 🧹 Limpieza segura al cancelar con `Ctrl+C`
-* 📊 Spinner visual mientras `tar` está en ejecución
-* 📁 Estructura organizada por fechas
+## Uso
 
----
-
-## 🗂️ Estructura generada
-
+```bash
+python3 backup_tui.py
 ```
+
+Opcionalmente puedes hacerlo ejecutable:
+
+```bash
+chmod +x backup_tui.py
+./backup_tui.py
+```
+
+## Controles
+
+* `Tab`: cambiar de campo.
+* Flechas arriba/abajo en el panel de discos: cambiar USB de origen.
+* Flechas izquierda/derecha: cambiar USB de origen o tipo de backup.
+* `Enter`: confirmar USB como origen, editar un campo, alternar tipo, iniciar la copia o salir al terminar.
+* `q`: salir directamente.
+* `Esc`: abrir menú con `Salir` y `Cancelar`.
+* `c` o `Ctrl+C`: cancelar mientras se ejecuta un backup.
+
+
+## Origen y destino
+
+* `Origen` es el disco o carpeta que quieres copiar. Si eliges un USB en la lista, ese USB pasa a ser el origen.
+* `Destino` es una carpeta distinta donde se guardará la copia. No puede estar dentro del origen.
+
+Ejemplo:
+
+```text
+USB elegido: /media/nico/B4B2-5FEC
+Origen: /media/nico/B4B2-5FEC
+Destino: /home/nico/Backups
+```
+
+En ese caso se copia el USB y el backup se guarda en `/home/nico/Backups`.
+
+## Estructura generada
+
+```text
 destino/
 └── carpeta_backups/
     ├── Iniciales/
@@ -30,67 +64,34 @@ destino/
             └── metadatos.snar
 ```
 
----
-
-## 🚀 Uso
-
-### 1️⃣ Backup completo
-
-```bash
-./inicial.sh <origen> [destino]
-```
-
-Ejemplo:
-
-```bash
-./inicial.sh /home/nico /media/backup
-```
-
-Si no se indica destino, usa el directorio actual.
-
----
-
-### 2️⃣ Backup incremental
-
-```bash
-./incremental.sh <origen> [destino]
-```
-
-Ejemplo:
-
-```bash
-./incremental.sh /home/nico /media/backup
-```
-
-⚠️ Requiere haber ejecutado antes el backup completo.
-
----
-
-## ⚙️ Requisitos
+## Requisitos
 
 * Linux
-* `bash`
+* Python 3.10 o superior
 * `tar`
 * `du`
-* `find`
+* `lsblk`
 * Permisos de lectura en origen y escritura en destino
 
----
+## Cómo funciona el incremental
 
-## 🧠 Cómo funciona el incremental
+* Se localiza el último `metadatos.snar`.
+* Se clona para mantener la cadena intacta.
+* `tar` compara el estado actual con el snapshot.
+* Solo empaqueta archivos nuevos, modificados o eliminados.
 
-* Se localiza el último `metadatos.snar`
-* Se clona para mantener la cadena intacta
-* `tar` compara el estado actual con el snapshot
-* Solo empaqueta archivos nuevos, modificados o eliminados
+## Menú de salida
 
----
+La esquina inferior derecha muestra `Esc menú`. Al pulsar `Esc`, aparece una ventana pequeña para confirmar `Salir` o volver con `Cancelar`.
 
-## 🛑 Cancelación segura
+## Finalización
 
-Si presionas `Ctrl+C`:
+Al completar una copia, el botón principal cambia a `Salir`. Pulsa `Enter` para cerrar la interfaz.
 
-* Se mata el proceso `tar`
-* Se elimina la carpeta parcial
-* Se evita dejar backups corruptos
+## Cancelación segura
 
+Si presionas `c` o `Ctrl+C` durante el proceso:
+
+* Se detiene el proceso `tar`.
+* Se elimina la carpeta parcial.
+* Se evita dejar backups corruptos.
