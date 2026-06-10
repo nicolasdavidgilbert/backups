@@ -22,6 +22,7 @@ from pathlib import Path
 
 APP_TITLE = "Linux USB Backup"
 BACKUP_DIR_SUFFIX = "_backups"
+ESC_DELAY_MS = 10
 
 
 @dataclass(frozen=True)
@@ -289,6 +290,11 @@ class BackupTUI:
         curses.init_pair(2, curses.COLOR_GREEN, -1)
         curses.init_pair(3, curses.COLOR_RED, -1)
         curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_CYAN)
+        try:
+            curses.set_escdelay(ESC_DELAY_MS)
+        except AttributeError:
+            pass
+        curses.raw()
         self.stdscr.keypad(True)
 
         while True:
@@ -297,7 +303,7 @@ class BackupTUI:
                 key = self.stdscr.getch()
             except KeyboardInterrupt:
                 return
-            if key == ord("q"):
+            if key in (3, ord("q")):
                 return
             if key == 27:
                 if self.show_exit_menu():
@@ -305,6 +311,8 @@ class BackupTUI:
                 continue
             if key == 9:
                 self.focus = (self.focus + 1) % 5
+            elif key == curses.KEY_BTAB:
+                self.focus = (self.focus - 1) % 5
             elif key in (curses.KEY_DOWN, curses.KEY_UP):
                 if self.focus == 0 and self.devices:
                     delta = 1 if key == curses.KEY_DOWN else -1
@@ -415,7 +423,7 @@ class BackupTUI:
                 key = self.stdscr.getch()
             except KeyboardInterrupt:
                 return True
-            if key in (27, ord("c"), ord("C")):
+            if key in (3, 27, ord("c"), ord("C")):
                 return False
             if key in (curses.KEY_LEFT, curses.KEY_RIGHT, 9):
                 selected = 1 - selected
@@ -503,6 +511,9 @@ class BackupTUI:
             except KeyboardInterrupt:
                 curses.curs_set(0)
                 return current
+            if key == 3:
+                curses.curs_set(0)
+                return current
             if key in (10, 13):
                 curses.curs_set(0)
                 return value.strip() or current
@@ -526,7 +537,7 @@ class BackupTUI:
 
         def should_cancel() -> bool:
             key = self.stdscr.getch()
-            if key in (ord("c"), ord("C")):
+            if key in (3, ord("c"), ord("C")):
                 self.cancel_requested = True
             return self.cancel_requested
 
@@ -554,6 +565,7 @@ class BackupTUI:
 
 def main() -> int:
     try:
+        os.environ.setdefault("ESCDELAY", str(ESC_DELAY_MS))
         curses.wrapper(lambda stdscr: BackupTUI(stdscr).run())
     except KeyboardInterrupt:
         return 130
